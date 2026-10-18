@@ -1,6 +1,7 @@
 //-- arquivo apps/lancamentos/model/mdlLancamentos.js
 
 const db = require("../../../database/databaseconfig");
+const mensagemErro = require("../../../database/mensagemErro");
 
 const GetAllLancamentos = async () => {
   return (
@@ -36,25 +37,26 @@ const GetPlanoContasToLancamentos = async () => {
 const InsertLancamento = async (registroPar) => {
   //@ Atenção: aqui utilizamos a variável msg para retornar erros de banco de dados.
   let linhasAfetadas;
+  let lancamentoid = null;
   let msg = "ok";
   try {
-    linhasAfetadas = (
-      await db.query(
-        "INSERT INTO lancamentos " + "values(default, $1, $2, $3, $4, false)",
-        [
-          registroPar.descricao,
-          registroPar.valor,
-          registroPar.datalancamento,
-          registroPar.planocontaid,
-        ]
-      )
-    ).rowCount;
+    const resultado = await db.query(
+      "INSERT INTO lancamentos " + "values(default, $1, $2, $3, $4, false) RETURNING lancamentoid",
+      [
+        registroPar.descricao,
+        registroPar.valor,
+        registroPar.datalancamento,
+        registroPar.planocontaid,
+      ]
+    );
+    linhasAfetadas = resultado.rowCount;
+    lancamentoid = resultado.rows[0].lancamentoid; //@ ID gerado pelo bigserial
   } catch (error) {
-    msg = "[mdlLancamentos|InsertLancamento] " + error.detail;
+    msg = "[mdlLancamentos|InsertLancamento] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 
-  return { msg, linhasAfetadas };
+  return { msg, linhasAfetadas, lancamentoid };
 };
 
 const UpdateLancamento = async (lancamentoIDPar, registroPar) => {
@@ -79,7 +81,7 @@ const UpdateLancamento = async (lancamentoIDPar, registroPar) => {
       )
     ).rowCount;
   } catch (error) {
-    msg = "[mdlLancamentos|UpdateLancamento] " + error.detail;
+    msg = "[mdlLancamentos|UpdateLancamento] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 
@@ -98,7 +100,7 @@ const DeleteLancamento = async (lancamentoIDPar) => {
       )
     ).rowCount;
   } catch (error) {
-    msg = "[mdlLancamentos|DeleteLancamento] " + error.detail;
+    msg = "[mdlLancamentos|DeleteLancamento] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 

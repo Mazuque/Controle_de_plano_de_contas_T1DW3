@@ -18,8 +18,8 @@ const GetPlanoContaByID = (req, res) =>
 const InsertPlanoConta = (request, res) =>
   (async () => {
     const planoContaREG = request.body;
-    let { msg, linhasAfetadas } = await mdlPlanoContas.InsertPlanoConta(planoContaREG);
-    res.json({ "status": msg, "linhasAfetadas": linhasAfetadas });
+    let { msg, linhasAfetadas, planocontaid } = await mdlPlanoContas.InsertPlanoConta(planoContaREG);
+    res.json({ "status": msg, "linhasAfetadas": linhasAfetadas, "planocontaid": planocontaid });
   })();
 
 const UpdatePlanoConta = (request, res) =>

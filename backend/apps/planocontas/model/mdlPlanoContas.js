@@ -1,6 +1,7 @@
 //-- arquivo apps/planocontas/model/mdlPlanoContas.js
 
 const db = require("../../../database/databaseconfig");
+const mensagemErro = require("../../../database/mensagemErro");
 
 const GetAllPlanoContas = async () => {
   return (
@@ -23,25 +24,26 @@ const GetPlanoContaByID = async (planoContaIDPar) => {
 const InsertPlanoConta = async (registroPar) => {
   //@ Atenção: aqui utilizamos a variável msg para retornar erros de banco de dados.
   let linhasAfetadas;
+  let planocontaid = null;
   let msg = "ok";
   try {
-    linhasAfetadas = (
-      await db.query(
-        "INSERT INTO planocontas " + "values(default, $1, $2, $3, $4, false)",
-        [
-          registroPar.codigo,
-          registroPar.descricao,
-          registroPar.tipo,
-          registroPar.ativo,
-        ]
-      )
-    ).rowCount;
+    const resultado = await db.query(
+      "INSERT INTO planocontas " + "values(default, $1, $2, $3, $4, false) RETURNING planocontaid",
+      [
+        registroPar.codigo,
+        registroPar.descricao,
+        registroPar.tipo,
+        registroPar.ativo,
+      ]
+    );
+    linhasAfetadas = resultado.rowCount;
+    planocontaid = resultado.rows[0].planocontaid; //@ ID gerado pelo bigserial
   } catch (error) {
-    msg = "[mdlPlanoContas|InsertPlanoConta] " + error.detail;
+    msg = "[mdlPlanoContas|InsertPlanoConta] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 
-  return { msg, linhasAfetadas };
+  return { msg, linhasAfetadas, planocontaid };
 };
 
 const UpdatePlanoConta = async (planoContaIDPar, registroPar) => {
@@ -66,7 +68,7 @@ const UpdatePlanoConta = async (planoContaIDPar, registroPar) => {
       )
     ).rowCount;
   } catch (error) {
-    msg = "[mdlPlanoContas|UpdatePlanoConta] " + error.detail;
+    msg = "[mdlPlanoContas|UpdatePlanoConta] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 
@@ -97,7 +99,7 @@ const DeletePlanoConta = async (planoContaIDPar) => {
       )
     ).rowCount;
   } catch (error) {
-    msg = "[mdlPlanoContas|DeletePlanoConta] " + error.detail;
+    msg = "[mdlPlanoContas|DeletePlanoConta] " + mensagemErro(error);
     linhasAfetadas = -1;
   }
 

@@ -35,8 +35,8 @@ const GetPlanoContasToLancamentos = (req, res) =>
 const InsertLancamento = (request, res) =>
   (async () => {
     const lancamentoREG = request.body;
-    let { msg, linhasAfetadas } = await mdlLancamentos.InsertLancamento(lancamentoREG);
-    res.json({ "status": msg, "linhasAfetadas": linhasAfetadas });
+    let { msg, linhasAfetadas, lancamentoid } = await mdlLancamentos.InsertLancamento(lancamentoREG);
+    res.json({ "status": msg, "linhasAfetadas": linhasAfetadas, "lancamentoid": lancamentoid });
   })();
 
 const UpdateLancamento = (request, res) =>

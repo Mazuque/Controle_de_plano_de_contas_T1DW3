@@ -4,6 +4,10 @@ const jwt = require("jsonwebtoken");
 const bCrypt = require("bcryptjs");
 const mdlLogin = require("../model/mdlLogin");
 
+//@ Tokens que já fizeram logout. Guarda token -> data de expiração (em segundos).
+//@ Fica em memória: se o backend reiniciar, a lista é zerada.
+const tokensInvalidados = new Map();
+
 const Login = async (req, res, next) => {
   const credencial = await mdlLogin.GetCredencial(req.body.UserName);
 
@@ -33,6 +37,11 @@ function AutenticaJWT(req, res, next) {
   const bearer = tokenHeader.split(" ");
   const token = bearer[1];
 
+  if (tokensInvalidados.has(token))
+    return res
+      .status(200)
+      .json({ auth: false, message: "JWT inválido ou expirado" });
+
   jwt.verify(token, process.env.SECRET_API, function (err, decoded) {
     if (err)
       return res
@@ -45,6 +54,21 @@ function AutenticaJWT(req, res, next) {
 }
 
 const Logout = (req, res, next) => {
+  const tokenHeader = req.headers["authorization"];
+  const token = tokenHeader ? tokenHeader.split(" ")[1] : null;
+  const decoded = token ? jwt.decode(token) : null;
+
+  //@ Só guarda o token se ele for válido (tem data de expiração).
+  if (decoded && decoded.exp) {
+    tokensInvalidados.set(token, decoded.exp);
+  }
+
+  //@ Remove da lista os tokens que já expiraram, para ela não crescer para sempre.
+  const agora = Math.floor(Date.now() / 1000);
+  for (const [tk, exp] of tokensInvalidados) {
+    if (exp < agora) tokensInvalidados.delete(tk);
+  }
+
   res.json({ auth: false, token: null });
 };
 
