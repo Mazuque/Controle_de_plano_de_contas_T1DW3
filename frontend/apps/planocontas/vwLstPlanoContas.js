@@ -147,3 +147,4 @@ function exibirErro(alertBox, mensagem) {
   alertBox.classList.add('alert-danger');
   alertBox.classList.remove('d-none');
 }
+//...
