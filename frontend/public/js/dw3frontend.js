@@ -42,3 +42,5 @@ function dw3OcultarBotao(id) {
     botao.classList.add('d-none');
   }
 }
+
+//...
